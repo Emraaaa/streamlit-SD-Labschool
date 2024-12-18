@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
-from fungsi import create_heatmap, plot_average_column
+from fungsi import create_heatmaps, plot_average_column
+
+st.set_page_config(layout="wide")
 
 # Streamlit App
 st.title("Visualisasi Data SD Labschool")
@@ -42,20 +44,34 @@ file_paths = [
     'SD LAB 1 di Ruang Pa Irwin/XL_2024.12.13_10.43.20.txt'
 ]
 
-if menu == "Heatmap":
-    selected_category = st.selectbox("Pilih Kategori Dataset:", categories)
 
-    # Find Path File
-    selected_index = categories.index(selected_category)
-    file_path = file_paths[selected_index]
-    st.write(f"### Menampilkan Heatmap untuk: **{selected_category}**")
+if menu == "Heatmap":
+    dfs = {}
+    for i, path in enumerate(file_paths, start=1):
+        try:
+            dfs[f"df{i}"] = pd.read_csv(path, sep='\t')
+        except FileNotFoundError:
+            print(f"File tidak ditemukan: {path}")
+        except Exception as e:
+            print(f"Error membaca file {path}: {e}")
+
+    selected_parameter = st.selectbox("Pilih Parameter:", parameter)
+    st.write(f"### Menampilkan Grafik untuk: **{selected_parameter}**")
+
     try:
-        df = pd.read_csv(file_path, sep='\t')
-        st.dataframe(df)  # Tampilkan data
-        heatmap_fig = create_heatmap(df, title=f"Heatmap {selected_category}")
-        st.pyplot(heatmap_fig)
-    except FileNotFoundError:
-        st.error(f"File tidak ditemukan: {file_path}")
+        figures = create_heatmaps(dfs, selected_parameter, grid_size=100)
+
+        cols_per_row = 3 
+        num_figures = len(figures)
+
+        for i in range(0, num_figures, cols_per_row):
+            cols = st.columns(cols_per_row)  
+            for j, col in enumerate(cols):
+                idx = i + j  
+                if idx < num_figures:  
+                    with col:
+                        st.write(f"#### {categories[idx]}")  
+                        st.pyplot(figures[idx][1])  
     except Exception as e:
         st.error(f"Error: {e}")
 
