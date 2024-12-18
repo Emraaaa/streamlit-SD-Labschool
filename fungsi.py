@@ -9,34 +9,37 @@ categories = [
     "Bu Muti", "Bu Sabila", "Bu Septi sampai Bu Astri", "Bu Shinta", 
     "Bu Titin", "Kelas 6 Bu Novi", "Pak Irfan", "Ruangan UKS", "SD Lab 1 Ruangan Pak Irwan"]
 
-def create_heatmap(dataframe, title="Heatmap", grid_size=100):
-   
-    # Remove duplicate points
-    dataframe = dataframe.drop_duplicates(subset=['Longitude', 'Latitude'])
+def create_heatmaps(dfs, parameter, grid_size=100):
+    figures = []  
 
-    # Create grid for interpolation
-    x = np.linspace(dataframe['Longitude'].min(), dataframe['Longitude'].max(), grid_size)
-    y = np.linspace(dataframe['Latitude'].min(), dataframe['Latitude'].max(), grid_size)
-    X, Y = np.meshgrid(x, y)
+    for name, dataframe in dfs.items():
+        if parameter not in dataframe.columns:
+            print(f"Skipping {name}: Parameter '{parameter}' not found.")
+            continue
 
-    # Data for interpolation
-    points = dataframe[['Longitude', 'Latitude']].values
-    values = dataframe['LTERSSI'].values
+        dataframe = dataframe.drop_duplicates(subset=['Longitude', 'Latitude'])
 
-    # Perform RBF interpolation
-    rbf = RBFInterpolator(points, values, kernel='linear')
-    Z = rbf(np.column_stack([X.ravel(), Y.ravel()])).reshape(grid_size, grid_size)
+        x = np.linspace(dataframe['Longitude'].min(), dataframe['Longitude'].max(), grid_size)
+        y = np.linspace(dataframe['Latitude'].min(), dataframe['Latitude'].max(), grid_size)
+        X, Y = np.meshgrid(x, y)
 
-    # Create the heatmap plot
-    fig, ax = plt.subplots(figsize=(10, 8))
-    c = ax.contourf(X, Y, Z, levels=100, cmap='coolwarm')
-    plt.colorbar(c, ax=ax, label='LTERSSI (dBm)')
-    ax.scatter(dataframe['Longitude'], dataframe['Latitude'], color='black', s=5, label='Data Points')
-    ax.set_xlabel('Longitude')
-    ax.set_ylabel('Latitude')
-    ax.set_title(title)
-    ax.legend()
-    return fig
+        points = dataframe[['Longitude', 'Latitude']].values
+        values = dataframe[parameter].values
+
+        rbf = RBFInterpolator(points, values, kernel='linear')
+        Z = rbf(np.column_stack([X.ravel(), Y.ravel()])).reshape(grid_size, grid_size)
+
+        fig, ax = plt.subplots(figsize=(10, 8))
+        c = ax.contourf(X, Y, Z, levels=100, cmap='coolwarm')
+        plt.colorbar(c, ax=ax, label=parameter)
+        ax.scatter(dataframe['Longitude'], dataframe['Latitude'], color='black', s=5, label='Data Points')
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_title(f"Heatmap of {parameter} ({name})")
+        ax.legend()
+
+        figures.append((name, fig))
+    return figures
 
 def plot_average_column(dfs, column_name):
     
