@@ -21,7 +21,7 @@ categories = [
     "Bu Titin", "Kelas 6 Bu Novi", "Pak Irfan", "Ruangan UKS", "SD Lab 1 Ruangan Pak Irwan"
 ]
 
-parameter = ["LTERSSI", "Level", "Qual", "DL_bitrate", "UL_bitrate"]
+parameter = ["LTERSSI", "Level", "Qual", "DL_bitrate", "UL_bitrate", "SNR"]
 
 file_paths = [
     'Gedung 3 Lantai/Lt 1 Ruang Bu Eti LAB A/XL_2024.12.13_09.34.37.txt',
